@@ -1,14 +1,16 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://react-full-4t5u.onrender.com/api',
+  // ✅ CAMBIO CLAVE: esto debe ser el BACKEND, no el frontend
+  baseURL: 'https://react-full-backend.onrender.com/api',
   timeout: 10000,
 });
 
 // Attach token to every request
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('ap_token');
-  if (token) config.headers.Authorization = 'Bearer ${token}';
+  // ✅ FIX: antes tenías comillas simples con ${token} (no interpolaba)
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -35,19 +37,25 @@ export const authApi = {
 // ── Parts ─────────────────────────────────────────────
 export const partsApi = {
   list:     (params) => api.get('/parts', { params }),
-  get:      (id)     => api.get('/parts/$',{id}),
+  // ✅ FIX: ruta dinámica correcta
+  get:      (id)     => api.get(`/parts/${id}`),
   create:   (data)   => api.post('/parts', data),
-  update:   (id,data)=> api.put('/parts/$',{id}, data),
-  remove:   (id)     => api.delete('/parts/$',{id}),
-  movement: (id,data)=> api.post('/parts/$',{id}, { movement: data }),
+  // ✅ FIX: ruta + data correctos
+  update:   (id, data)=> api.put(`/parts/${id}`, data),
+  // ✅ FIX: delete correcto
+  remove:   (id)     => api.delete(`/parts/${id}`),
+  // ✅ FIX: movement correcto
+  movement: (id, data)=> api.post(`/parts/${id}/movement`, data),
 };
 
 // ── Users ─────────────────────────────────────────────
 export const usersApi = {
   list:   ()         => api.get('/users'),
   create: (data)     => api.post('/users', data),
-  update: (id, data) => api.put('/users/$',{id}, data),
-  remove: (id)       => api.delete('/users/$',{id}),
+  // ✅ FIX: ruta dinámica correcta
+  update: (id, data) => api.put(`/users/${id}`, data),
+  // ✅ FIX: ruta dinámica correcta
+  remove: (id)       => api.delete(`/users/${id}`),
 };
 
 // ── Stats ─────────────────────────────────────────────
