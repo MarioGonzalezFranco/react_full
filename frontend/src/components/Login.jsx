@@ -16,7 +16,13 @@ export default function Login() {
     try {
       await login(form.username, form.password);
     } catch (err) {
-      setError(err.response?.data?.error || 'Error de conexión con el servidor');
+      // ✅ FIX: captura mensajes comunes (message, error, etc.) sin romper nada
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Error de conexión con el servidor';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -97,8 +103,12 @@ export default function Login() {
               <label style={{ display:'block', fontSize:11.5, fontWeight:600, letterSpacing:'0.07em', textTransform:'uppercase', color:'var(--muted)', marginBottom:7 }}>Usuario</label>
               <div style={{ position:'relative' }}>
                 <span style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--muted)' }}><Ic n="user" size={15}/></span>
-                <input value={form.username} onChange={e=>setForm(f=>({...f,username:e.target.value}))}
-                  placeholder="Ingresa tu usuario" onKeyDown={e=>e.key==='Enter'&&handleSubmit()}
+                <input
+                  value={form.username}
+                  onChange={e=>setForm(f=>({...f,username:e.target.value}))}
+                  placeholder="Ingresa tu usuario"
+                  // ✅ FIX: pasa el evento para evitar comportamientos raros con Enter
+                  onKeyDown={e=>e.key==='Enter'&&handleSubmit(e)}
                   style={{ background:'var(--surface)', border:'1px solid var(--border2)', color:'var(--text)', borderRadius:7, padding:'11px 14px 11px 42px', fontSize:14, width:'100%', outline:'none' }}
                   onFocus={e=>e.target.style.borderColor='var(--accent)'}
                   onBlur={e=>e.target.style.borderColor='var(--border2)'}
@@ -111,8 +121,13 @@ export default function Login() {
               <label style={{ display:'block', fontSize:11.5, fontWeight:600, letterSpacing:'0.07em', textTransform:'uppercase', color:'var(--muted)', marginBottom:7 }}>Contraseña</label>
               <div style={{ position:'relative' }}>
                 <span style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--muted)' }}><Ic n="lock" size={15}/></span>
-                <input type="password" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))}
-                  placeholder="••••••••" onKeyDown={e=>e.key==='Enter'&&handleSubmit()}
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={e=>setForm(f=>({...f,password:e.target.value}))}
+                  placeholder="••••••••"
+                  // ✅ FIX: pasa el evento aquí también
+                  onKeyDown={e=>e.key==='Enter'&&handleSubmit(e)}
                   style={{ background:'var(--surface)', border:'1px solid var(--border2)', color:'var(--text)', borderRadius:7, padding:'11px 14px 11px 42px', fontSize:14, width:'100%', outline:'none' }}
                   onFocus={e=>e.target.style.borderColor='var(--accent)'}
                   onBlur={e=>e.target.style.borderColor='var(--border2)'}
@@ -126,7 +141,9 @@ export default function Login() {
               </div>
             )}
 
-            <button onClick={handleSubmit} disabled={loading}
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
               style={{ background:'var(--accent)', color:'#fff', border:'none', borderRadius:8, padding:'13px', fontSize:15, fontFamily:'var(--font-h)', fontWeight:600, letterSpacing:'0.04em', cursor:loading?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:4, opacity:loading?0.8:1, transition:'all 0.18s' }}
               onMouseEnter={e=>!loading&&(e.target.style.background='#FB923C')}
               onMouseLeave={e=>e.target.style.background='var(--accent)'}
