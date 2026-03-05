@@ -10,18 +10,7 @@ app.use(cors({
   origin: [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://react-full-4t5u.onrender.com",
-  ],
-  credentials: true
-}));
-
-// ✅ ADD (no rompe nada): responder bien a preflight OPTIONS
-app.options("*", cors({
-  origin: [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://react-full-4t5u.onrender.com",
-    "https://react-full-tiv2.onrender.com"
+    "https://react-full-backend.onrender.com"
   ],
   credentials: true
 }));
@@ -34,8 +23,8 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // ─── Routes ─────────────────────────────────────────────
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/parts", require("./routes/parts"));
+app.use("/api/auth",       require("./routes/auth"));
+app.use("/api/parts",      require("./routes/parts"));
 app.use("/api/categories", require("./routes/categories"));
 
 // ─── Health check ───────────────────────────────────────
