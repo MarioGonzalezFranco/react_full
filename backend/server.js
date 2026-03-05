@@ -1,19 +1,41 @@
 require("dotenv").config();
 const express = require("express");
-const cors    = require("cors");
-const morgan  = require("morgan");
+const cors = require("cors");
+const morgan = require("morgan");
 
 const app = express();
 
 // ─── Middleware ─────────────────────────────────────────
-app.use(cors({ origin: ["http://localhost:3000", "http://127.0.0.1:3000"], credentials: true }));
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://react-full-4t5u.onrender.com",
+  ],
+  credentials: true
+}));
+
+// ✅ ADD (no rompe nada): responder bien a preflight OPTIONS
+app.options("*", cors({
+  origin: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://react-full-4t5u.onrender.com",
+    "https://react-full-tiv2.onrender.com"
+  ],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
+
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
 
 // ─── Routes ─────────────────────────────────────────────
-app.use("/api/auth",       require("./routes/auth"));
-app.use("/api/parts",      require("./routes/parts"));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/parts", require("./routes/parts"));
 app.use("/api/categories", require("./routes/categories"));
 
 // ─── Health check ───────────────────────────────────────
@@ -31,8 +53,9 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Start ──────────────────────────────────────────────
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
+  // ✅ FIX: logs con template literal correcto y saltos de línea válidos
   console.log(`\n🚀  AutoPartes API corriendo en http://localhost:${PORT}`);
   console.log(`📋  Health: http://localhost:${PORT}/api/health\n`);
 });

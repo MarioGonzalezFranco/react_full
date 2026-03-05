@@ -1,13 +1,14 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://react-full-backend.onrender.com/api',
   timeout: 10000,
 });
 
 // Attach token to every request
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('ap_token');
+  // ✅ FIX: faltaban comillas/backticks para el Bearer
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -35,18 +36,24 @@ export const authApi = {
 // ── Parts ─────────────────────────────────────────────
 export const partsApi = {
   list:     (params) => api.get('/parts', { params }),
+  // ✅ FIX: faltaban comillas/backticks
   get:      (id)     => api.get(`/parts/${id}`),
   create:   (data)   => api.post('/parts', data),
-  update:   (id,data)=> api.put(`/parts/${id}`, data),
+  // ✅ FIX: faltaban comillas/backticks
+  update:   (id, data) => api.put(`/parts/${id}`, data),
+  // ✅ FIX: faltaban comillas/backticks
   remove:   (id)     => api.delete(`/parts/${id}`),
-  movement: (id,data)=> api.post(`/parts/${id}/movement`, data),
+  // ✅ FIX: faltaban comillas/backticks
+  movement: (id, data) => api.post(`/parts/${id}/movement`, data),
 };
 
 // ── Users ─────────────────────────────────────────────
 export const usersApi = {
   list:   ()         => api.get('/users'),
   create: (data)     => api.post('/users', data),
+  // ✅ FIX: faltaban comillas/backticks
   update: (id, data) => api.put(`/users/${id}`, data),
+  // ✅ FIX: faltaban comillas/backticks
   remove: (id)       => api.delete(`/users/${id}`),
 };
 

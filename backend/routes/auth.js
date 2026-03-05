@@ -25,6 +25,9 @@ router.post("/login", async (req, res) => {
     // Update last login
     await db.query("UPDATE users SET last_login = NOW() WHERE id = ?", [user.id]);
 
+if (!process.env.JWT_SECRET) {
+  return res.status(500).json({ ok: false, message: "JWT_SECRET no configurado" });
+}
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role, name: user.full_name },
       process.env.JWT_SECRET,
