@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://react-full-backend.onrender.com',
   timeout: 10000,
 });
 
