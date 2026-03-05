@@ -1,59 +1,60 @@
-import axios from 'axios';
+const router = require("express").Router();
+const bcrypt = require("bcryptjs");
+const jwt    = require("jsonwebtoken");
+const db     = require("../db");
 
-const api = axios.create({
-  baseURL: 'https://autopartes-pro-1-backend-srid.onrender.com/api',
-  timeout: 10000,
-});
+// POST /api/auth/login
+router.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password)
+    return res.status(400).json({ ok: false, message: "Usuario y contraseña requeridos" });
 
-// Attach token to every request
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('ap_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM users WHERE username = ? AND active = 1 LIMIT 1",
+      [username]
+    );
+    if (!rows.length)
+      return res.status(401).json({ ok: false, message: "Credenciales incorrectas" });
 
-// Handle 401 globally → logout
-api.interceptors.response.use(
-  res => res,
-  err => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('ap_token');
-      window.location.href = '/';
-    }
-    return Promise.reject(err);
+    const user = rows[0];
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match)
+      return res.status(401).json({ ok: false, message: "Credenciales incorrectas" });
+
+    // Update last login
+    await db.query("UPDATE users SET last_login = NOW() WHERE id = ?", [user.id]);
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role, name: user.full_name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "8h" }
+    );
+
+    res.json({
+      ok: true,
+      token,
+      user: { id: user.id, username: user.username, name: user.full_name, role: user.role },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: "Error del servidor" });
   }
-);
+});
 
-export default api;
+// GET /api/auth/me  (protected)
+const auth = require("../middleware/auth");
+router.get("/me", auth, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT id, username, full_name, role, last_login FROM users WHERE id = ?",
+      [req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
+    res.json({ ok: true, user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ ok: false, message: "Error del servidor" });
+  }
+});
 
-// ── Auth ──────────────────────────────────────────────
-export const authApi = {
-  login:  (data)    => api.post('/auth/login', data),
-  me:     ()        => api.get('/auth/me'),
-};
-
-// ── Parts ─────────────────────────────────────────────
-export const partsApi = {
-  list:     (params) => api.get('/parts', { params }),
-  get:      (id)     => api.get(`/parts/${id}`),
-  create:   (data)   => api.post('/parts', data),
-  update:   (id,data)=> api.put(`/parts/${id}`, data),
-  remove:   (id)     => api.delete(`/parts/${id}`),
-  movement: (id,data)=> api.post(`/parts/${id}/movement`, data),
-};
-
-// ── Users ─────────────────────────────────────────────
-export const usersApi = {
-  list:   ()         => api.get('/users'),
-  create: (data)     => api.post('/users', data),
-  update: (id, data) => api.put(`/users/${id}`, data),
-  remove: (id)       => api.delete(`/users/${id}`),
-};
-
-// ── Stats ─────────────────────────────────────────────
-export const statsApi = {
-  dashboard:  ()       => api.get('/stats/dashboard'),
-  movements:  (params) => api.get('/stats/movements', { params }),
-  categories: ()       => api.get('/stats/categories'),
-  activity:   ()       => api.get('/stats/activity'),
-};
+module.exports = router;

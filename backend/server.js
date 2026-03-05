@@ -1,26 +1,15 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
-const morgan = require("morgan");
+const cors    = require("cors");
+const morgan  = require("morgan");
 
 const app = express();
 
 // ─── Middleware ─────────────────────────────────────────
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://react-full-tiv2.onrender.com"
-  ],
-  credentials: true
-}));
-
+app.use(cors({ origin: ["http://localhost:3000", "http://127.0.0.1:3000"], credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
-}
+if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
 // ─── Routes ─────────────────────────────────────────────
 app.use("/api/auth",       require("./routes/auth"));
@@ -42,7 +31,7 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Start ──────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`\n🚀  AutoPartes API corriendo en http://localhost:${PORT}`);
   console.log(`📋  Health: http://localhost:${PORT}/api/health\n`);
