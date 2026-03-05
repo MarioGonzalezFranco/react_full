@@ -5,10 +5,18 @@ const api = axios.create({
   timeout: 10000,
 });
 
+// 🔧 ADD: log para confirmar que el client correcto se está usando
+console.log("🔧 client.js cargado. baseURL =", api.defaults.baseURL);
+
 // Attach token to every request
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('ap_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  // 🔧 ADD: log para ver a qué URL real se está enviando la request
+  const finalUrl = `${config.baseURL || ''}${config.url || ''}`;
+  console.log("🔧 API REQUEST →", finalUrl, config);
+
   return config;
 });
 
@@ -20,6 +28,10 @@ api.interceptors.response.use(
       localStorage.removeItem('ap_token');
       window.location.href = '/';
     }
+
+    // 🔧 ADD: log para ver la respuesta real del backend
+    console.error("🔧 API ERROR →", err?.response || err);
+
     return Promise.reject(err);
   }
 );
@@ -30,6 +42,10 @@ export default api;
 export const authApi = {
   login:  (data)    => api.post('/auth/login', data),
   me:     ()        => api.get('/auth/me'),
+
+  // 🔧 ADD: prueba directa absoluta al backend (para confirmar si el problema es el baseURL)
+  loginDirect: (data) =>
+    axios.post('https://react-full-backend.onrender.com/api/auth/login', data),
 };
 
 // ── Parts ─────────────────────────────────────────────
